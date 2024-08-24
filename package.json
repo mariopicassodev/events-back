@@ -11,8 +11,13 @@
   "license": "ISC",
   "dependencies": {
     "@apollo/server": "^4.11.0",
+    "@prisma/client": "^5.18.0",
+    "cluster": "^0.7.7",
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "graphql": "^16.9.0"
+    "graphql": "^16.9.0",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.1.0",
+    "morgan": "^1.10.0"
   }
 }
