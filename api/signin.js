@@ -12,9 +12,9 @@ const createSignInRoute = () => {
 
         try {
             // Store with prisma the user and email in the database if it doesn't exist
-            const user = await prisma.user.findUnique({ where: { email: req.body.email } });
+            let user = await prisma.user.findUnique({ where: { email: req.body.email } });
             if (!user) {
-                await prisma.user.create({
+                user = await prisma.user.create({
                     data: {
                         email: req.body.email,
                         name: req.body.name,
@@ -25,7 +25,7 @@ const createSignInRoute = () => {
             console.log('User signed in:', req.body.email);
             console.log('User signed in:', req.body.name);
 
-            res.status(200).json({ message: 'Sign in successful' });
+            res.status(200).json({ message: 'Sign in successful' , user_id: user.id});
         } catch (error) {
             console.error('Error during sign in:', error);
             res.status(500).json({ error: 'An unexpected error occurred.' });

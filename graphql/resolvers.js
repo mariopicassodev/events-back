@@ -8,6 +8,9 @@ const resolvers = {
         user: async (parent, args) => {
             return await prisma.user.findUnique({ where: { id: args.id } });
         },
+        userEvents: async (parent, args) => {
+            return await prisma.event.findMany({ where: { ownerId: args.userId } });
+        },
         upcomingEvents: async () => {
             return await prisma.event.findMany({
                 where: {
@@ -37,6 +40,9 @@ const resolvers = {
                     schedule: args.schedule,
                     fee: args.fee,
                     maxCapacity: args.maxCapacity,
+                    owner: {
+                        connect: { id: args.ownerId } // Assuming ownerId is passed in args
+                    }
                 },
             });
         },

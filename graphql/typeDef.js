@@ -48,13 +48,22 @@ typeDefs = `#graphql
         user(id: Int!): User
         upcomingEvents: [Event]
         event(id: Int!): Event
+        userEvents(userId: Int!): [Event]
         applications: [Application]
         application(id: Int!): Application
     }
 
     type Mutation {
 
-        createEvent(name: String!, description: String!, location: String, schedule: DateTime!, fee: Int!, maxCapacity: Int!): Event
+        createEvent(
+            name: String!,
+            description: String!,
+            location: String,
+            schedule: DateTime!,
+            fee: Int!,
+            maxCapacity: Int!,
+            ownerId: Int!
+        ): Event
         createApplication(eventId: Int!, userId: Int!): Application
         acceptApplication(id: Int!): Application
         rejectApplication(id: Int!): Application
