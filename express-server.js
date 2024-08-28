@@ -15,11 +15,10 @@ async function initApp() {
     app.use(cors({ origin: config.CORS_ORIGIN }));
     app.use(express.json());
     app.use(morgan('dev'));
-    app.use(authMiddleware);
 
-    // Authentication routes
     app.use('/api/auth/signin', createSignInRoute());
 
+    app.use(authMiddleware);
     // Apollo Server
     const apolloServer = await createApolloServer();
     app.use('/graphql', expressMiddleware(apolloServer));
