@@ -25,8 +25,30 @@ const resolvers = {
         event: async (parent, args) => {
             return await prisma.event.findUnique({ where: { id: args.id } });
         },
-        reservations: async () => {
-            return await prisma.reservation.findMany();
+        userReservations: async (parent, args) => {
+
+            const userWithReservations = await prisma.user.findUnique({
+                where: { id: args.userId },
+                include: { reservations: true },
+            });
+
+            if (!userWithReservations) {
+                console.error('User not found');
+                throw new GraphQLError('User not found', {
+                    extensions: {
+                        code: 'BAD_USER_INPUT',
+                        argumentName: 'id',
+                        http: {
+                            status: 400,
+                        },
+                    },
+                });
+            }
+
+            console.log('User reservations:', userWithReservations.reservations);
+            return userWithReservations.reservations;
+
+
         },
         reservation: async (parent, args) => {
             return await prisma.reservation.findUnique({ where: { id: args.id } });

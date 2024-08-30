@@ -49,7 +49,7 @@ typeDefs = `#graphql
         upcomingEvents: [Event]
         event(id: Int!): Event
         userEvents(userId: Int!): [Event]
-        reservations: [Reservation]
+        userReservations(userId: Int!): [Reservation]
         reservation(id: Int!): Reservation
     }
 
