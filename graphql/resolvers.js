@@ -1,4 +1,5 @@
 const prisma = require('../lib/prisma-client');
+const { GraphQLError } = require('graphql');
 
 const resolvers = {
     Query: {
@@ -12,27 +13,74 @@ const resolvers = {
             return await prisma.event.findMany({ where: { ownerId: args.userId } });
         },
         upcomingEvents: async () => {
-            return await prisma.event.findMany({
+            const events = await prisma.event.findMany({
                 where: {
                     schedule: {
                         gte: new Date(),
                     },
                 },
             });
+            return events;
         },
         event: async (parent, args) => {
             return await prisma.event.findUnique({ where: { id: args.id } });
         },
-        applications: async () => {
-            return await prisma.application.findMany();
+        userReservations: async (parent, args) => {
+
+            const userWithReservations = await prisma.user.findUnique({
+                where: { id: args.userId },
+                include: { reservations: true },
+            });
+
+            if (!userWithReservations) {
+                console.error('User not found');
+                throw new GraphQLError('User not found', {
+                    extensions: {
+                        code: 'BAD_USER_INPUT',
+                        argumentName: 'id',
+                        http: {
+                            status: 400,
+                        },
+                    },
+                });
+            }
+
+            console.log('User reservations:', userWithReservations.reservations);
+            return userWithReservations.reservations;
+
+
         },
-        application: async (parent, args) => {
-            return await prisma.application.findUnique({ where: { id: args.id } });
+        reservation: async (parent, args) => {
+            return await prisma.reservation.findUnique({ where: { id: args.id } });
         },
     },
     Mutation: {
         createEvent: async (parent, args) => {
-            return await prisma.event.create({
+
+
+            console.log('Creating event. args:', args);
+
+            // Log before finding the user
+            console.log('Finding user with id:', args.ownerId);
+            const user = await prisma.user.findUnique({
+                where: { id: args.ownerId },
+            });
+
+            // Log after finding the user
+            console.log('User found:', user);
+            if (!user) {
+                throw new GraphQLError('Invalid argument value', {
+                    extensions: {
+                        code: 'BAD_USER_INPUT',
+                        argumentName: 'id',
+                        http: {
+                            status: 400,
+                        },
+                    },
+                });
+            }
+
+            const event = await prisma.event.create({
                 data: {
                     name: args.name,
                     description: args.description,
@@ -45,25 +93,77 @@ const resolvers = {
                     }
                 },
             });
+
+            if (!event) {
+                throw new GraphQLError('Failed to create event', {
+                    extensions: {
+                        code: 'INTERNAL_SERVER_ERROR',
+                        http: {
+                            status: 500,
+                        },
+                    },
+                });
+            }
+
+            return event;
+
         },
-        createApplication: async (parent, args) => {
-            return await prisma.application.create({
+        createReservation: async (parent, args) => {
+
+            // Check if the user exists
+            const user = await prisma.user.findUnique({
+                where: { id: args.userId },
+            });
+
+            if (!user) {
+                throw new GraphQLError('Invalid argument value', {
+                    extensions: {
+                        code: 'BAD_USER_INPUT',
+                        argumentName: 'id',
+                        http: {
+                            status: 400,
+                        },
+                    },
+                });
+            }
+
+            // Check if the event exists
+
+            const event = await prisma.event.findUnique({
+                where: { id: args.eventId },
+            });
+
+            if (!event) {
+                throw new GraphQLError('Invalid argument value', {
+                    extensions: {
+                        code: 'BAD_USER_INPUT',
+                        argumentName: 'id',
+                        http: {
+                            status: 400,
+                        },
+                    },
+                });
+            }
+
+            const reservation = await prisma.reservation.create({
                 data: {
                     eventId: args.eventId,
                     userId: args.userId,
                 },
             });
+
+            return reservation;
         },
-        acceptApplication: async (parent, args) => {
-            return await prisma.application.update({
+        acceptReservation: async (parent, args) => {
+            return await prisma.reservation.update({
                 where: { id: args.id },
                 data: {
                     status: 'ACCEPTED',
                 },
             });
         },
-        rejectApplication: async (parent, args) => {
-            return await prisma.application.update({
+        rejectReservation: async (parent, args) => {
+            return await prisma.reservation.update({
                 where: { id: args.id },
                 data: {
                     status: 'REJECTED',

@@ -9,7 +9,10 @@ const createSignInRoute = () => {
 
     router.post('/', async (req, res) => {
 
-
+        if(req.body.email === undefined || req.body.name === undefined){
+            res.status(400).json({ error: 'Email or name is missing' });
+            return;
+        }
         try {
             // Store with prisma the user and email in the database if it doesn't exist
             let user = await prisma.user.findUnique({ where: { email: req.body.email } });
