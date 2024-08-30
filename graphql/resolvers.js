@@ -25,11 +25,11 @@ const resolvers = {
         event: async (parent, args) => {
             return await prisma.event.findUnique({ where: { id: args.id } });
         },
-        applications: async () => {
-            return await prisma.application.findMany();
+        reservations: async () => {
+            return await prisma.reservation.findMany();
         },
-        application: async (parent, args) => {
-            return await prisma.application.findUnique({ where: { id: args.id } });
+        reservation: async (parent, args) => {
+            return await prisma.reservation.findUnique({ where: { id: args.id } });
         },
     },
     Mutation: {
@@ -86,24 +86,62 @@ const resolvers = {
             return event;
 
         },
-        createApplication: async (parent, args) => {
-            return await prisma.application.create({
+        createReservation: async (parent, args) => {
+
+            // Check if the user exists
+            const user = await prisma.user.findUnique({
+                where: { id: args.userId },
+            });
+
+            if (!user) {
+                throw new GraphQLError('Invalid argument value', {
+                    extensions: {
+                        code: 'BAD_USER_INPUT',
+                        argumentName: 'id',
+                        http: {
+                            status: 400,
+                        },
+                    },
+                });
+            }
+
+            // Check if the event exists
+
+            const event = await prisma.event.findUnique({
+                where: { id: args.eventId },
+            });
+
+            if (!event) {
+                throw new GraphQLError('Invalid argument value', {
+                    extensions: {
+                        code: 'BAD_USER_INPUT',
+                        argumentName: 'id',
+                        http: {
+                            status: 400,
+                        },
+                    },
+                });
+            }
+
+            const reservation = await prisma.reservation.create({
                 data: {
                     eventId: args.eventId,
                     userId: args.userId,
                 },
             });
+
+            return reservation;
         },
-        acceptApplication: async (parent, args) => {
-            return await prisma.application.update({
+        acceptReservation: async (parent, args) => {
+            return await prisma.reservation.update({
                 where: { id: args.id },
                 data: {
                     status: 'ACCEPTED',
                 },
             });
         },
-        rejectApplication: async (parent, args) => {
-            return await prisma.application.update({
+        rejectReservation: async (parent, args) => {
+            return await prisma.reservation.update({
                 where: { id: args.id },
                 data: {
                     status: 'REJECTED',

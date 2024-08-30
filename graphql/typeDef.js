@@ -5,7 +5,7 @@ typeDefs = `#graphql
         email: String
         name: String
         events: [Event]
-        applications: [Application]
+        reservations: [Reservation]
         createdAt: DateTime
         updatedAt: DateTime
     }
@@ -21,23 +21,23 @@ typeDefs = `#graphql
         maxCapacity: Int
         ownerId: Int
         owner: User
-        applications: [Application]
+        reservations: [Reservation]
         createdAt: DateTime
         updatedAt: DateTime
     }
 
-    type Application {
+    type Reservation {
         id: Int
         eventId: Int
         event: Event
         userId: Int
         user: User
-        status: ApplicationStatus
+        status: ReservationStatus
         createdAt: DateTime
         updatedAt: DateTime
     }
 
-    enum ApplicationStatus {
+    enum ReservationStatus {
         PENDING
         ACCEPTED
         REJECTED
@@ -49,8 +49,8 @@ typeDefs = `#graphql
         upcomingEvents: [Event]
         event(id: Int!): Event
         userEvents(userId: Int!): [Event]
-        applications: [Application]
-        application(id: Int!): Application
+        reservations: [Reservation]
+        reservation(id: Int!): Reservation
     }
 
     type Mutation {
@@ -64,9 +64,9 @@ typeDefs = `#graphql
             maxCapacity: Int!,
             ownerId: Int!
         ): Event
-        createApplication(eventId: Int!, userId: Int!): Application
-        acceptApplication(id: Int!): Application
-        rejectApplication(id: Int!): Application
+        createReservation(eventId: Int!, userId: Int!): Reservation
+        acceptReservation(id: Int!): Reservation
+        rejectReservation(id: Int!): Reservation
     }
 
     scalar DateTime

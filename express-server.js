@@ -17,7 +17,6 @@ async function initApp() {
     app.use(morgan('dev'));
 
     app.use('/api/auth/signin', createSignInRoute());
-
     app.use(authMiddleware);
     // Apollo Server
     const apolloServer = await createApolloServer();

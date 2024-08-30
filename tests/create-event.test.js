@@ -10,6 +10,7 @@ let app;
 beforeAll(async () => {
     app = await initApp();
 
+
     // Create a user
     await prisma.user.create({
         data: {
@@ -22,8 +23,9 @@ beforeAll(async () => {
 
 afterAll(async () => {
     // Clean up database and close Prisma connection
-    await prisma.event.deleteMany();
-    await prisma.user.deleteMany();
+    await prisma.reservation.deleteMany(); // Delete reservations first
+    await prisma.event.deleteMany();       // Then delete events
+    await prisma.user.deleteMany();        // Finally, delete users
     await prisma.$disconnect();
 });
 

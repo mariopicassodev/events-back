@@ -18,7 +18,7 @@ model User {
     email        String        @unique
     name         String?
     events       Event[]       @relation("EventOwner")
-    applications Application[]
+    reservations Reservation[]
     createdAt    DateTime      @default(now())
     updatedAt    DateTime      @updatedAt
 }
@@ -34,23 +34,23 @@ model Event {
     maxCapacity  Int
     ownerId      Int
     owner        User          @relation("EventOwner", fields: [ownerId], references: [id])
-    applications Application[]
+    reservations Reservation[]
     createdAt    DateTime      @default(now())
     updatedAt    DateTime      @updatedAt
 }
 
-model Application {
+model Reservation {
     id        Int               @id @default(autoincrement())
     eventId   Int
     event     Event             @relation(fields: [eventId], references: [id])
     userId    Int
     user      User              @relation(fields: [userId], references: [id])
-    status    ApplicationStatus @default(PENDING)
+    status    ReservationStatus @default(PENDING)
     createdAt DateTime          @default(now())
     updatedAt DateTime          @updatedAt
 }
 
-enum ApplicationStatus {
+enum ReservationStatus {
     PENDING
     ACCEPTED
     REJECTED
