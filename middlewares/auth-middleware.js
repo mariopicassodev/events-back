@@ -12,7 +12,6 @@ const authMiddleware = async (req, res, next) => {
 
     try {
         const decoded = await validateToken(token);
-        console.log('Token is valid:', decoded);
         req.user = decoded; // Attach the decoded token to the request object
         next();
     } catch (error) {
