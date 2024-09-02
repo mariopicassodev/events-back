@@ -10,6 +10,10 @@ let app;
 beforeAll(async () => {
     app = await initApp();
 
+    // Clean up database
+    await prisma.reservation.deleteMany();
+    await prisma.event.deleteMany();
+    await prisma.user.deleteMany();
 
     // Create a user
     await prisma.user.create({
