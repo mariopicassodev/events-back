@@ -29,7 +29,11 @@ const resolvers = {
 
             const userWithReservations = await prisma.user.findUnique({
                 where: { id: args.userId },
-                include: { reservations: true },
+                include: {
+                    reservations: {
+                        include: { event: true },
+                    }
+                },
             });
 
             if (!userWithReservations) {
