@@ -10,10 +10,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    // Clean up database and close Prisma connection
-    await prisma.reservation.deleteMany(); // Delete reservations first
-    await prisma.event.deleteMany();       // Then delete events
-    await prisma.user.deleteMany();        // Finally, delete users
     await prisma.$disconnect();
 });
 
@@ -22,11 +18,11 @@ test('Get my reservations', async () => {
     // Create a user
     await prisma.user.create({
         data: {
-            email: 'test@test.com',
+            email: 'test5@test.com',
             name: 'test',
         },
     });
-    const user = await prisma.user.findUnique({ where: { email: 'test@test.com' } });
+    const user = await prisma.user.findUnique({ where: { email: 'test5@test.com' } });
     const event = await prisma.event.create({
         data: {
             name: 'testname',
@@ -66,6 +62,10 @@ test('Get my reservations', async () => {
 
     console.log(response.body);
     expect(response.body.data.userReservations).toHaveLength(1);
+    // Clean up database and close Prisma connection
+    await prisma.reservation.deleteMany(); // Delete reservations first
+    await prisma.event.deleteMany();       // Then delete events
+    await prisma.user.deleteMany();        // Finally, delete users
 });
 
 

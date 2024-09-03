@@ -15,10 +15,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    // Clean up database and close Prisma connection
-    await prisma.reservation.deleteMany(); // Delete reservations first
-    await prisma.event.deleteMany();       // Then delete events
-    await prisma.user.deleteMany();        // Finally, delete users
     await prisma.$disconnect();
 });
 
@@ -27,7 +23,7 @@ describe('Get upcoming events', () => {
         // Create a user
         const user = await prisma.user.create({
             data: {
-                email: 'test@test.com',
+                email: 'test4@test.com',
                 name: 'test',
             },
         });
@@ -89,6 +85,10 @@ describe('Get upcoming events', () => {
             });
         console.log(response.body);
         expect(response.body.data.upcomingEvents.length).toBe(2);
+        // Clean up database and close Prisma connection
+        await prisma.reservation.deleteMany(); // Delete reservations first
+        await prisma.event.deleteMany();       // Then delete events
+        await prisma.user.deleteMany();        // Finally, delete users
     }
     );
 });
