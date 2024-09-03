@@ -1,7 +1,7 @@
 // test create event endpoint
 
 const request = require('supertest');
-const  initApp  = require('../express-server');
+const initApp = require('../express-server');
 const prisma = require('../lib/prisma-client');
 const jwt = require('jsonwebtoken');
 
@@ -9,16 +9,6 @@ let app;
 
 beforeAll(async () => {
     app = await initApp();
-
-
-    // Create a user
-    await prisma.user.create({
-        data: {
-            email: 'test@test.com',
-            name: 'test',
-        },
-    });
-
 });
 
 afterAll(async () => {
@@ -31,6 +21,13 @@ afterAll(async () => {
 
 describe('Create event', () => {
     test('Create event with valid token', async () => {
+        // Create a user
+        await prisma.user.create({
+            data: {
+                email: 'test@test.com',
+                name: 'test',
+            },
+        });
         const user = await prisma.user.findUnique({ where: { email: 'test@test.com' } });
         const token = jwt.sign({ user_id: user.id }, process.env.SECRET_KEY);
         const query = `
@@ -117,7 +114,13 @@ describe('Create event', () => {
     );
 
     test('Create event with missing fields', async () => {
-        const user = await prisma.user.findUnique({ where: { email: 'test@test.com' } });
+        await prisma.user.create({
+            data: {
+                email: 'test2@test.com',
+                name: 'test',
+            },
+        });
+        const user = await prisma.user.findUnique({ where: { email: 'test2@test.com' } });
         const token = jwt.sign({ user_id: user.id }, process.env.SECRET_KEY);
         const query = `
         mutation {

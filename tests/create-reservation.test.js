@@ -6,14 +6,6 @@ const jwt = require('jsonwebtoken');
 
 beforeAll(async () => {
     app = await initApp();
-
-    // Create a user
-    const user = await prisma.user.create({
-        data: {
-            email: 'test@test.com',
-            name: 'test',
-        },
-    });
 });
 
 
@@ -27,6 +19,13 @@ afterAll(async () => {
 
 // Create a reservation
 test('Create a reservation', async () => {
+    // Create a user
+    await prisma.user.create({
+        data: {
+            email: 'test@test.com',
+            name: 'test',
+        },
+    });
     const user = await prisma.user.findUnique({ where: { email: 'test@test.com' } });
     const event = await prisma.event.create({
         data: {
