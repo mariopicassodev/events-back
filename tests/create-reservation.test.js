@@ -10,10 +10,6 @@ beforeAll(async () => {
 
 
 afterAll(async () => {
-    // Clean up database and close Prisma connection
-    await prisma.reservation.deleteMany(); // Delete reservations first
-    await prisma.event.deleteMany();       // Then delete events
-    await prisma.user.deleteMany();        // Finally, delete users
     await prisma.$disconnect();
 });
 
@@ -65,6 +61,10 @@ test('Create a reservation', async () => {
         userId: user.id,
         eventId: event.id,
     });
+    // Clean up database and close Prisma connection
+    await prisma.reservation.deleteMany(); // Delete reservations first
+    await prisma.event.deleteMany();       // Then delete events
+    await prisma.user.deleteMany();        // Finally, delete users
 });
 
 

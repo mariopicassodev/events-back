@@ -12,10 +12,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    // Clean up database and close Prisma connection
-    await prisma.reservation.deleteMany(); // Delete reservations first
-    await prisma.event.deleteMany();       // Then delete events
-    await prisma.user.deleteMany();        // Finally, delete users
     await prisma.$disconnect();
 });
 
@@ -71,6 +67,10 @@ describe('Create event', () => {
             fee: 10,
             maxCapacity: 100,
         });
+        // Clean up database and close Prisma connection
+        await prisma.reservation.deleteMany(); // Delete reservations first
+        await prisma.event.deleteMany();       // Then delete events
+        await prisma.user.deleteMany();        // Finally, delete users
     }
     );
 
@@ -110,6 +110,10 @@ describe('Create event', () => {
 
         expect(response.statusCode).toBe(401);
         expect(response.body.error).toBe('Invalid token');
+        // Clean up database and close Prisma connection
+        await prisma.reservation.deleteMany(); // Delete reservations first
+        await prisma.event.deleteMany();       // Then delete events
+        await prisma.user.deleteMany();        // Finally, delete users
     }
     );
 
@@ -152,6 +156,10 @@ describe('Create event', () => {
             })
             .set('Authorization', `Bearer ${token}`);
         expect(response.statusCode).toBe(400);
+        // Clean up database and close Prisma connection
+        await prisma.reservation.deleteMany(); // Delete reservations first
+        await prisma.event.deleteMany();       // Then delete events
+        await prisma.user.deleteMany();        // Finally, delete users
     });
 });
 
