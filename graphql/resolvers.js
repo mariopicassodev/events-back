@@ -1,18 +1,35 @@
-const prisma = require('../lib/prisma-client');
 const { GraphQLError } = require('graphql');
+const prisma = require('../lib/prisma-client');
 
 const resolvers = {
     Query: {
-        users: async () => {
+        users: async (_ ,__ ,context) => {
+            const {prisma} = context;
             return await prisma.user.findMany();
         },
-        user: async (parent, args) => {
+        user: async (parent, args, context) => {
+            const {prisma} = context;
             return await prisma.user.findUnique({ where: { id: args.id } });
         },
-        userEvents: async (parent, args) => {
-            return await prisma.event.findMany({ where: { ownerId: args.userId } });
+        userEvents: async (parent, args, context) => {
+            const {prisma} = context;
+            const userEvents = await prisma.event.findMany({ where: { ownerId: args.userId } });
+            if (!userEvents) {
+                console.error('User not found');
+                throw new GraphQLError('User not found', {
+                    extensions: {
+                        code: 'BAD_USER_INPUT',
+                        argumentName: 'id',
+                        http: {
+                            status: 400,
+                        },
+                    },
+                });
+            }
+            return userEvents;
         },
-        upcomingEvents: async () => {
+        upcomingEvents: async ( _, __, context) => {
+            const {prisma} = context;
             const events = await prisma.event.findMany({
                 where: {
                     schedule: {
@@ -22,10 +39,12 @@ const resolvers = {
             });
             return events;
         },
-        event: async (parent, args) => {
+        event: async (parent, args, context) => {
+            const {prisma} = context;
             return await prisma.event.findUnique({ where: { id: args.id } });
         },
-        userReservations: async (parent, args) => {
+        userReservations: async (parent, args, context) => {
+            const {prisma} = context;
 
             const userWithReservations = await prisma.user.findUnique({
                 where: { id: args.userId },
@@ -59,8 +78,9 @@ const resolvers = {
         },
     },
     Mutation: {
-        createEvent: async (parent, args) => {
+        createEvent: async (parent, args, context) => {
 
+            const prisma = context.prisma;
 
             console.log('Creating event. args:', args);
 
@@ -112,8 +132,8 @@ const resolvers = {
             return event;
 
         },
-        createReservation: async (parent, args) => {
-
+        createReservation: async (parent, args, context) => {
+            const {prisma} = context;
             // Check if the user exists
             const user = await prisma.user.findUnique({
                 where: { id: args.userId },
@@ -158,7 +178,8 @@ const resolvers = {
 
             return reservation;
         },
-        acceptReservation: async (parent, args) => {
+        acceptReservation: async (parent, args, context) => {
+            const {prisma} = context;
             return await prisma.reservation.update({
                 where: { id: args.id },
                 data: {
@@ -166,7 +187,8 @@ const resolvers = {
                 },
             });
         },
-        rejectReservation: async (parent, args) => {
+        rejectReservation: async (parent, args, context) => {
+            const {prisma} = context;
             return await prisma.reservation.update({
                 where: { id: args.id },
                 data: {

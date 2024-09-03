@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 
 
 beforeAll(async () => {
-    app = await initApp();
+    app = await initApp(prisma);
 });
 
 
@@ -61,7 +61,8 @@ test('Create a reservation', async () => {
         userId: user.id,
         eventId: event.id,
     });
-    // Clean up database and close Prisma connection
+
+    // Clean up
     await prisma.reservation.deleteMany(); // Delete reservations first
     await prisma.event.deleteMany();       // Then delete events
     await prisma.user.deleteMany();        // Finally, delete users

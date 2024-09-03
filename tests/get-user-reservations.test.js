@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 let app;
 
 beforeAll(async () => {
-    app = await initApp();
+    app = await initApp(prisma);
 });
 
 afterAll(async () => {

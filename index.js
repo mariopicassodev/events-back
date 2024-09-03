@@ -35,7 +35,7 @@ if (config.MULTI_PROC && cluster.isMaster) {
         console.log(`Prisma connected successfully in worker ${process.pid}`);
 
         // Set up the server with dependency injection
-        const app = await initApp();
+        const app = await initApp(prisma);
 
         // Start the server
         const server = app.listen(config.SERVER_PORT, () => {

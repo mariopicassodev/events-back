@@ -8,7 +8,7 @@ const createApolloServer = require('./lib/create-apollo-server')
 const authMiddleware = require('./middlewares/auth-middleware');
 
 
-async function initApp() {
+async function initApp(prisma) {
     const app = express();
 
     // Middleware
@@ -20,7 +20,13 @@ async function initApp() {
     app.use(authMiddleware);
     // Apollo Server
     const apolloServer = await createApolloServer();
-    app.use('/graphql', expressMiddleware(apolloServer));
+    app.use('/graphql', expressMiddleware(apolloServer, {
+        context: async ({ req }) => {
+            return {
+                prisma,
+            };
+        },
+    }));
 
     return app;
 }

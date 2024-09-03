@@ -8,10 +8,7 @@ const jwt = require('jsonwebtoken');
 let app;
 
 beforeAll(async () => {
-    app = await initApp();
-
-
-
+    app = await initApp(prisma);
 });
 
 afterAll(async () => {
@@ -85,7 +82,8 @@ describe('Get upcoming events', () => {
             });
         console.log(response.body);
         expect(response.body.data.upcomingEvents.length).toBe(2);
-        // Clean up database and close Prisma connection
+
+        // Clean up
         await prisma.reservation.deleteMany(); // Delete reservations first
         await prisma.event.deleteMany();       // Then delete events
         await prisma.user.deleteMany();        // Finally, delete users
