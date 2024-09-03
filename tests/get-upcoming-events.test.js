@@ -27,7 +27,7 @@ describe('Get upcoming events', () => {
         // Create a user
         const user = await prisma.user.create({
             data: {
-                email: 'test@test.com',
+                email: 'test4@test.com',
                 name: 'test',
             },
         });

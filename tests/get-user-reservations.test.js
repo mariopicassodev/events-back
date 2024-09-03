@@ -22,11 +22,11 @@ test('Get my reservations', async () => {
     // Create a user
     await prisma.user.create({
         data: {
-            email: 'test@test.com',
+            email: 'test5@test.com',
             name: 'test',
         },
     });
-    const user = await prisma.user.findUnique({ where: { email: 'test@test.com' } });
+    const user = await prisma.user.findUnique({ where: { email: 'test5@test.com' } });
     const event = await prisma.event.create({
         data: {
             name: 'testname',
