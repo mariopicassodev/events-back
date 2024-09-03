@@ -1,4 +1,4 @@
-name: CI - Server Unit Tests and Linting
+name: Tests
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
 
 
       - name: Run migrations
-        run: npx prisma migrate deploy
+        run: npx prisma db push && npx prisma generate
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/myapp_test
 
