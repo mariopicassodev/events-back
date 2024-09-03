@@ -13,6 +13,7 @@ const resolvers = {
         },
         userEvents: async (parent, args, context) => {
             const {prisma} = context;
+            console.log('Finding user with id:', args.userId);
             const userEvents = await prisma.event.findMany({ where: { ownerId: args.userId } });
             if (!userEvents) {
                 console.error('User not found');

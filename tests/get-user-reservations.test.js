@@ -62,6 +62,7 @@ test('Get my reservations', async () => {
 
     console.log(response.body);
     expect(response.body.data.userReservations).toHaveLength(1);
+
     // Clean up database and close Prisma connection
     await prisma.reservation.deleteMany(); // Delete reservations first
     await prisma.event.deleteMany();       // Then delete events
