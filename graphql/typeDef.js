@@ -41,7 +41,6 @@ typeDefs = `#graphql
         PENDING
         ACCEPTED
         REJECTED
-        CANCELLED
     }
 
     type Query {
@@ -63,8 +62,9 @@ typeDefs = `#graphql
             ownerId: Int!
         ): Event!
         createReservation(eventId: Int!, userId: Int!): Reservation!
-        acceptReservation(id: Int!): Reservation!
-        rejectReservation(id: Int!): Reservation!
+        acceptReservation(eventId: Int!, reservationId: Int!): Reservation!
+        rejectReservation(reservationId: Int!): Reservation!
+        cancelReservation(reservationId: Int!): Boolean!
     }
 
     scalar DateTime

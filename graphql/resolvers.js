@@ -1,4 +1,4 @@
-const { version } = require('joi');
+const { Prisma } = require('@prisma/client');
 const handlePrismaError = require('./lib/prisma-error-handler');
 const { GraphQLError } = require('graphql');
 
@@ -10,7 +10,21 @@ const withErrorHandling = (resolver) => {
             if (error instanceof GraphQLError) {
                 throw error;
             }
-            throw handlePrismaError(error);
+            else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                throw handlePrismaError(error);
+            }
+            else {
+                throw new GraphQLError('Internal server error', {
+                    extensions: {
+                        message: error.message,
+                        code: 'INTERNAL_SERVER_ERROR',
+                        http: {
+                            status: 500,
+                        }
+                    }
+                });
+            }
+
         }
     };
 };
@@ -144,42 +158,141 @@ const resolvers = {
                 }
             }
 
-            // perform optimistic concurrency control updating version
-            // This is a nested write operation, is atomic
-            // SEE: https://www.prisma.io/docs/orm/prisma-client/queries/transactions#nested-writes
+            // Perform optimistic concurrency control updating version
+            // This is ACID
+            // SEE: https://www.prisma.io/docs/orm/prisma-client/queries/transactions
 
-            const reservation = await prisma.reservation.create({
-                data: {
-                    event: {
-                        connect: { id: args.eventId, version: event.version },
+            const [updatedEvent, reservation] = await prisma.$transaction([
+                prisma.event.update({
+                    where: { id: args.eventId, version: event.version },
+                    data: {
+                        version: {
+                            increment: 1,
+                        },
                     },
-                    user: {
-                        connect: { id: args.userId },
+                }),
+                prisma.reservation.create({
+                    data: {
+                        event: {
+                            connect: { id: args.eventId },
+                        },
+                        user: {
+                            connect: { id: args.userId },
+                        },
                     },
-                },
-            });
+                }),
+            ]);
 
             return reservation;
         }),
 
         acceptReservation: withErrorHandling(async (parent, args, context) => {
             const { prisma } = context;
-            return await prisma.reservation.update({
-                where: { id: args.id },
-                data: {
-                    status: 'ACCEPTED',
-                },
+
+            // get the event with reservations
+            const event = await prisma.event.findUnique({
+                where: { id: args.eventId },
+                include: { reservations: true },
             });
+
+            if (!event) {
+                throw new GraphQLError('Event not found', {
+                    extensions: {
+                        code: 'NOT_FOUND',
+                        http: {
+                            status: 404,
+                        }
+                    }
+                });
+            }
+
+            if (event?.reservations) {
+                // check if the event is full of accepted reservations
+                const acceptedReservations = event.reservations.filter(
+                    (reservation) => reservation.status === 'ACCEPTED'
+                );
+
+                if (acceptedReservations.length >= event.maxCapacity) {
+                    throw new GraphQLError('Event is full', {
+                        extensions: {
+                            code: 'CONFLICT',
+                            http: {
+                                status: 409,
+                            }
+                        }
+                    });
+                }
+
+                // must be a pending reservation
+                const reservation = event.reservations.find(
+                    (reservation) => reservation.id === args.reservationId
+                );
+
+                if (!reservation) {
+                    throw new GraphQLError('Reservation not found', {
+                        extensions: {
+                            code: 'NOT_FOUND',
+                            http: {
+                                status: 404,
+                            }
+                        }
+                    });
+                }
+                else if (reservation.status !== 'PENDING') {
+                    throw new GraphQLError('Reservation is not pending', {
+                        extensions: {
+                            code: 'CONFLICT',
+                            http: {
+                                status: 409,
+                            }
+                        }
+                    });
+                }
+            }
+
+            // Perform optimistic concurrency control updating version
+            // This is ACID
+            // SEE: https://www.prisma.io/docs/orm/prisma-client/queries/transactions
+
+            const [updatedEvent, reservation] = await prisma.$transaction([
+                prisma.event.update({
+                    where: { id: args.eventId, version: event.version },
+                    data: {
+                        version: {
+                            increment: 1,
+                        },
+                    },
+                }),
+                prisma.reservation.update({
+                    where: { id: args.reservationId },
+                    data: {
+                        status: 'ACCEPTED',
+                    },
+                }),
+            ]);
+
+            return reservation;
+
         }),
 
         rejectReservation: withErrorHandling(async (parent, args, context) => {
             const { prisma } = context;
             return await prisma.reservation.update({
-                where: { id: args.id },
+                where: { id: args.reservationId },
                 data: {
                     status: 'REJECTED',
                 },
             });
+        }),
+
+        cancelReservation: withErrorHandling(async (parent, args, context) => {
+            const { prisma } = context;
+
+            await prisma.reservation.delete({
+                where: { id: args.reservationId },
+            });
+
+            return true;
         }),
     },
 };
