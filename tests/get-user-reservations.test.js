@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 let app;
 
 beforeAll(async () => {
-    app = await initApp();
+    app = await initApp(prisma);
 });
 
 afterAll(async () => {
@@ -15,6 +15,11 @@ afterAll(async () => {
 
 
 test('Get my reservations', async () => {
+
+    await prisma.reservation.deleteMany(); // Delete reservations first
+    await prisma.event.deleteMany();       // Then delete events
+    await prisma.user.deleteMany();        // Finally, delete users
+
     // Create a user
     await prisma.user.create({
         data: {
@@ -62,6 +67,7 @@ test('Get my reservations', async () => {
 
     console.log(response.body);
     expect(response.body.data.userReservations).toHaveLength(1);
+
     // Clean up database and close Prisma connection
     await prisma.reservation.deleteMany(); // Delete reservations first
     await prisma.event.deleteMany();       // Then delete events

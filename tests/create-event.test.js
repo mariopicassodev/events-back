@@ -8,7 +8,7 @@ const jwt = require('jsonwebtoken');
 let app;
 
 beforeAll(async () => {
-    app = await initApp();
+    app = await initApp(prisma);
 });
 
 afterAll(async () => {
@@ -17,6 +17,11 @@ afterAll(async () => {
 
 describe('Create event', () => {
     test('Create event with valid token', async () => {
+
+        await prisma.reservation.deleteMany(); // Delete reservations first
+        await prisma.event.deleteMany();       // Then delete events
+        await prisma.user.deleteMany();        // Finally, delete users
+
         // Create a user
         await prisma.user.create({
             data: {
@@ -76,6 +81,11 @@ describe('Create event', () => {
 
 
     test('Create event with invalid token', async () => {
+
+        await prisma.reservation.deleteMany(); // Delete reservations first
+        await prisma.event.deleteMany();       // Then delete events
+        await prisma.user.deleteMany();        // Finally, delete users
+
         const query = `
         mutation {
             createEvent(
@@ -118,6 +128,11 @@ describe('Create event', () => {
     );
 
     test('Create event with missing fields', async () => {
+
+        await prisma.reservation.deleteMany(); // Delete reservations first
+        await prisma.event.deleteMany();       // Then delete events
+        await prisma.user.deleteMany();        // Finally, delete users
+
         await prisma.user.create({
             data: {
                 email: 'test2@test.com',
@@ -156,7 +171,8 @@ describe('Create event', () => {
             })
             .set('Authorization', `Bearer ${token}`);
         expect(response.statusCode).toBe(400);
-        // Clean up database and close Prisma connection
+
+        // Clean up
         await prisma.reservation.deleteMany(); // Delete reservations first
         await prisma.event.deleteMany();       // Then delete events
         await prisma.user.deleteMany();        // Finally, delete users

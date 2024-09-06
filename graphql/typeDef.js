@@ -44,13 +44,10 @@ typeDefs = `#graphql
     }
 
     type Query {
-        users: [User]
-        user(id: Int!): User
-        upcomingEvents: [Event]
-        event(id: Int!): Event
-        userEvents(userId: Int!): [Event]
-        userReservations(userId: Int!): [Reservation]
-        reservation(id: Int!): Reservation
+        upcomingEvents: [Event]!
+        event(id: Int!): Event!
+        userEvents(userId: Int!): [Event]!
+        userReservations(userId: Int!): [Reservation]!
     }
 
     type Mutation {
@@ -63,10 +60,11 @@ typeDefs = `#graphql
             fee: Int!,
             maxCapacity: Int!,
             ownerId: Int!
-        ): Event
-        createReservation(eventId: Int!, userId: Int!): Reservation
-        acceptReservation(id: Int!): Reservation
-        rejectReservation(id: Int!): Reservation
+        ): Event!
+        createReservation(eventId: Int!, userId: Int!): Reservation!
+        acceptReservation(eventId: Int!, reservationId: Int!): Reservation!
+        rejectReservation(reservationId: Int!): Reservation!
+        cancelReservation(reservationId: Int!): Boolean!
     }
 
     scalar DateTime
