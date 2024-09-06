@@ -15,8 +15,8 @@ afterAll(async () => {
     await prisma.$disconnect();
 });
 
-describe('Get upcoming events', () => {
-    test('Get upcoming events', async () => {
+describe('Get user events', () => {
+    test('Get user events', async () => {
 
         await prisma.reservation.deleteMany(); // Delete reservations first
         await prisma.event.deleteMany();       // Then delete events
@@ -25,7 +25,7 @@ describe('Get upcoming events', () => {
         // Create a user
         const user = await prisma.user.create({
             data: {
-                email: 'test4@test.com',
+                email: 'test6@test.com',
                 name: 'test',
             },
         });
@@ -60,39 +60,33 @@ describe('Get upcoming events', () => {
                     maxCapacity: 100,
                 },
             ],
-
         });
+
         const token = jwt.sign({ user_id: user.id }, process.env.SECRET_KEY);
         const query = `
-        query {
-            upcomingEvents
-            {
-                id
-                name
-                description
-                location
-                schedule
-                ownerId
-                fee
-                maxCapacity
-            }
-        }
-    `;
-        // make the graphql request
+            query {
+                    userEvents(userId: ${user.id}) {
+                        name
+                    }
+                }
+        `;
+
         const response = await request(app)
             .post('/graphql')
-            .set('Authorization', `Bearer ${token}`)
-            .send({
-                query,
-            });
-        console.log(response.body);
-        expect(response.body.data.upcomingEvents.length).toBe(2);
+            .send({ query })
+            .set('Authorization', `Bearer ${token}`);
 
-        // Clean up
+        console.log(response.body);
+
+        expect(response.status).toBe(200);
+        expect(response.body.data.userEvents).toHaveLength(3);
+
+        // Clean up database
         await prisma.reservation.deleteMany(); // Delete reservations first
         await prisma.event.deleteMany();       // Then delete events
         await prisma.user.deleteMany();        // Finally, delete users
-    }
-    );
+    });
+
 });
+
 
