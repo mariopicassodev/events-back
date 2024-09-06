@@ -1,10 +1,15 @@
+const { version } = require('joi');
 const handlePrismaError = require('./lib/prisma-error-handler');
+const { GraphQLError } = require('graphql');
 
 const withErrorHandling = (resolver) => {
     return async (parent, args, context, info) => {
         try {
             return await resolver(parent, args, context, info);
         } catch (error) {
+            if (error instanceof GraphQLError) {
+                throw error;
+            }
             throw handlePrismaError(error);
         }
     };
@@ -84,18 +89,79 @@ const resolvers = {
             return event;
 
         }),
+
         createReservation: withErrorHandling(async (parent, args, context) => {
             const { prisma } = context;
 
+            // get the event with reservations
+            const event = await prisma.event.findUnique({
+                where: { id: args.eventId },
+                include: { reservations: true },
+            });
+
+            if (!event) {
+                throw new GraphQLError('Event not found', {
+                    extensions: {
+                        code: 'NOT_FOUND',
+                        http: {
+                            status: 404,
+                        }
+                    }
+                });
+            }
+
+            if (event?.reservations) {
+                // check if the event is full of accepted reservations
+                const acceptedReservations = event.reservations.filter(
+                    (reservation) => reservation.status === 'ACCEPTED'
+                );
+
+                if (acceptedReservations.length >= event.maxCapacity) {
+                    throw new GraphQLError('Event is full', {
+                        extensions: {
+                            code: 'CONFLICT',
+                            http: {
+                                status: 409,
+                            }
+                        }
+                    });
+                }
+
+                // prevent duplication
+                const existingReservation = event.reservations.find(
+                    (reservation) => reservation.userId === args.userId
+                );
+
+                if (existingReservation) {
+                    throw new GraphQLError('User already has a reservation', {
+                        extensions: {
+                            code: 'CONFLICT',
+                            http: {
+                                status: 409,
+                            }
+                        }
+                    });
+                }
+            }
+
+            // perform optimistic concurrency control updating version
+            // This is a nested write operation, is atomic
+            // SEE: https://www.prisma.io/docs/orm/prisma-client/queries/transactions#nested-writes
+
             const reservation = await prisma.reservation.create({
                 data: {
-                    eventId: args.eventId,
-                    userId: args.userId,
+                    event: {
+                        connect: { id: args.eventId, version: event.version },
+                    },
+                    user: {
+                        connect: { id: args.userId },
+                    },
                 },
             });
 
             return reservation;
         }),
+
         acceptReservation: withErrorHandling(async (parent, args, context) => {
             const { prisma } = context;
             return await prisma.reservation.update({
@@ -105,6 +171,7 @@ const resolvers = {
                 },
             });
         }),
+
         rejectReservation: withErrorHandling(async (parent, args, context) => {
             const { prisma } = context;
             return await prisma.reservation.update({

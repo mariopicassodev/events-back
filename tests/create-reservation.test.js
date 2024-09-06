@@ -89,17 +89,6 @@ describe('Create reservation', () => {
 
         });
         const user = await prisma.user.findUnique({ where: { email: 'testcreateresInvID@test.com' } });
-        const event = await prisma.event.create({
-            data: {
-                name: 'testname',
-                description: 'testdesc',
-                location: 'testloc',
-                schedule: new Date('2022-03-24T21:04:00Z'),
-                ownerId: user.id,
-                fee: 10,
-                maxCapacity: 100,
-            },
-        });
 
         const token = jwt.sign({ user_id: user.id }, process.env.SECRET_KEY);
 
@@ -107,7 +96,7 @@ describe('Create reservation', () => {
             mutation {
                 createReservation(
                     userId: ${user.id},
-                    eventId: 99999
+                    eventId: 1
                 )
                 {
                     id
@@ -120,9 +109,9 @@ describe('Create reservation', () => {
             .post('/graphql')
             .send({ query })
             .set('Authorization', `Bearer ${token}`)
-            .expect(400);
+            .expect(404);
         console.log(response.body);
-        expect(response.statusCode).toBe(400);
+        expect(response.statusCode).toBe(404);
 
         // Clean up
         await prisma.reservation.deleteMany(); // Delete reservations first

@@ -1,13 +1,13 @@
 const express = require('express');
-const prisma = require('../lib/prisma-client');
 const Joi = require('joi');
+const handlePrismaError = require('../lib/prisma-error-handling');
 
 const schema = Joi.object({
     email: Joi.string().email().required(),
     name: Joi.string().required()
 });
 
-const createSignInRoute = () => {
+const createSignInRoute = (prisma) => {
     const router = express.Router();
 
     router.post('/', async (req, res) => {
@@ -33,13 +33,11 @@ const createSignInRoute = () => {
                 });
             }
 
-            console.log('User signed in:', req.body.email);
-            console.log('User signed in:', req.body.name);
-
             res.status(200).json({ message: 'Sign in successful', user_id: user.id });
         } catch (error) {
-            console.error('Error during sign in:', error);
-            res.status(500).json({ error: 'An unexpected error occurred.' });
+
+            const { status, message } = handlePrismaError(error);
+            res.status(status).json({ error: message });
         }
     });
 

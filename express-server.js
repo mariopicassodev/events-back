@@ -16,7 +16,7 @@ async function initApp(prisma) {
     app.use(express.json());
     app.use(morgan('dev'));
 
-    app.use('/api/auth/signin', createSignInRoute());
+    app.use('/api/auth/signin', createSignInRoute(prisma));
     app.use(authMiddleware);
     // Apollo Server
     const apolloServer = await createApolloServer();
