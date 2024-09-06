@@ -17,6 +17,11 @@ afterAll(async () => {
 
 describe('Get upcoming events', () => {
     test('Get upcoming events', async () => {
+
+        await prisma.reservation.deleteMany(); // Delete reservations first
+        await prisma.event.deleteMany();       // Then delete events
+        await prisma.user.deleteMany();        // Finally, delete users
+
         // Create a user
         const user = await prisma.user.create({
             data: {

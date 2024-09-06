@@ -86,6 +86,7 @@ describe('Get user events', () => {
         await prisma.event.deleteMany();       // Then delete events
         await prisma.user.deleteMany();        // Finally, delete users
     });
+
 });
 
 
