@@ -49,5 +49,5 @@ jobs:
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/myapp_test
           SECRET_KEY: your_secret_key
-        run: npm test
+        run: npm test -- --runInBand --ci --silent
 
