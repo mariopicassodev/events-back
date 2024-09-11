@@ -7,7 +7,7 @@ const schema = Joi.object({
     name: Joi.string().required()
 });
 
-const createSignInRoute = (prisma) => {
+const createSignInRoute = (prisma, rollbar) => {
     const router = express.Router();
 
     router.post('/', async (req, res) => {
@@ -35,7 +35,7 @@ const createSignInRoute = (prisma) => {
 
             res.status(200).json({ message: 'Sign in successful', user_id: user.id });
         } catch (error) {
-
+            rollbar.error('Error during sign in:', error);
             const { status, message } = handlePrismaError(error);
             res.status(status).json({ error: message });
         }

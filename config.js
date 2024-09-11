@@ -7,7 +7,7 @@ const config = {
     CLIENT_PORT: CLIENT_PORT,
     CORS_ORIGIN: [
         `http://localhost:${CLIENT_PORT}`,
-        'https://your-app.vercel.app',
+        'https://events-front-mu.vercel.app',
     ],
     MULTI_PROC: true,
     MAX_WORKERS: os.cpus().length,
