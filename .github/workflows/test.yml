@@ -49,5 +49,6 @@ jobs:
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/myapp_test
           SECRET_KEY: your_secret_key
+          ROLLBAR_KEY: 9926839f9bd7486bb6c3261b7ff7414c
         run: npm test -- --runInBand --ci --silent
 
